@@ -185,7 +185,6 @@ public class SpanAspect {
         logger.info("============================  [ AOP:headerExchange ]");
         HttpHeaders headers = null;
         EmployeeDTO.Request request = null;
-        kafkaUUID = UUID.randomUUID().toString();
 
 
         for(Object obj : pjp.getArgs()) {
@@ -212,87 +211,88 @@ public class SpanAspect {
 
 
     /**
-     * @methodName  messageQueueLogging
+     * @methodName  messageBeforeQueueLogging
      * @return      null
      * @description http request header, body 값으로 kafka msg produce
      *              com.example.demo2.controller.EmployeeController.*EmployeesInfo*(..) 패턴으로 Before AOP를 적용합니다.
      */
     @Before("execution(* com.example.demo2.controller.EmployeeController.postEmployeesInfo(..))")
-    public Object messageBeforeQueueLogging(JoinPoint pjp) throws Throwable {
+    public void messageBeforeQueueLogging(JoinPoint pjp) throws Throwable {
         logger.info("[                             Kafka Before Logging Start                                ]");
         logger.info("============================  [ AOP:messageBeforeQueueLogging ]");
         logger.info(kafkaUUID);
 
-        String headers;
-        String body;
-        String timeStamp;
+        kafkaUUID = UUID.randomUUID().toString();
+        String Msg = "";
+        String headersString = "";
+        String bodyString = "";
+        String timeStamp = "";
         LocalDateTime currentDateTime = LocalDateTime.now();
         ObjectMapper mapper = new ObjectMapper();
 
-        timeStamp = "[ "+ currentDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"))
-                + " ]|[ " + env.getProperty("kafka.service.code") + " ]|"
-                + "[ " + kafkaUUID + " ]|";
+        timeStamp = "[ "+ currentDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")) + " ]|"
+                  + "[ " + env.getProperty("kafka.service.code") + " ]|"
+                  + "[ " + kafkaUUID + " ]|";
 
 
         for(Object obj : pjp.getArgs()) {
             if(obj instanceof HttpHeaders) {
-                logger.info(timeStamp + obj.toString());
-                headers = (timeStamp + obj.toString());
-                Producer.produce(env.getProperty("kafka.brokers"), env.getProperty("kafka.topic"), headers);
+                headersString = timeStamp + obj.toString();
             }
 
             if(obj instanceof EmployeeDTO.Request) {
-                logger.info(timeStamp + mapper.writeValueAsString(obj));
-                body = (timeStamp + mapper.writeValueAsString(obj));
-                Producer.produce(env.getProperty("kafka.brokers"), env.getProperty("kafka.topic"), body);
+                bodyString = mapper.writeValueAsString(obj);
             }
         }
+
+        Msg = headersString +" "+ bodyString;
+        logger.info(Msg);
+        Producer.produce(env.getProperty("kafka.brokers"), env.getProperty("kafka.topic"), Msg);
+
         logger.info("[                             Kafka Before Logging END                                ]");
 
-        return 0;
     }
 
 
     /**
-     * @methodName  messageQueueLogging
+     * @methodName  messageAfterQueueLogging
      * @return      null
      * @description http request header, body 값으로 kafka msg produce
      *              com.example.demo2.controller.EmployeeController.*EmployeesInfo*(..) 패턴으로 Before AOP를 적용합니다.
      */
     @After("execution(* com.example.demo2.controller.EmployeeController.postEmployeesInfo(..))")
-    public Object messageAfterQueueLogging(JoinPoint pjp) throws Throwable {
+    public void messageAfterQueueLogging(JoinPoint pjp) throws Throwable {
         logger.info("[                             Kafka After Logging Start                                ]");
         logger.info("============================  [ AOP:messageAfterQueueLogging ]");
         logger.info(kafkaUUID);
 
-        String headers;
-        String body;
-        String timeStamp;
+        String Msg = "";
+        String headersString = "";
+        String bodyString = "";
+        String timeStamp = "";
         LocalDateTime currentDateTime = LocalDateTime.now();
         ObjectMapper mapper = new ObjectMapper();
 
-        timeStamp = "[ "+ currentDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"))
-                + " ]|[ " + env.getProperty("kafka.service.code") + " ]|"
-                + "[ " + kafkaUUID + " ]|";
+        timeStamp = "[ "+ currentDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")) + " ]|"
+                  + "[ " + env.getProperty("kafka.service.code") + " ]|"
+                  + "[ " + kafkaUUID + " ]|";
 
 
         for(Object obj : pjp.getArgs()) {
             if(obj instanceof HttpHeaders) {
-                logger.info(timeStamp + obj.toString());
-                headers = (timeStamp + obj.toString());
-                Producer.produce(env.getProperty("kafka.brokers"), env.getProperty("kafka.topic"), headers);
+                headersString = timeStamp + obj.toString();
             }
 
             if(obj instanceof EmployeeDTO.Request) {
-                logger.info(timeStamp + mapper.writeValueAsString(obj));
-                body = (timeStamp + mapper.writeValueAsString(obj));
-                Producer.produce(env.getProperty("kafka.brokers"), env.getProperty("kafka.topic"), body);
+                bodyString = mapper.writeValueAsString(obj);
             }
         }
+
+        Msg = headersString +" "+ bodyString;
+        logger.info(Msg);
+        Producer.produce(env.getProperty("kafka.brokers"), env.getProperty("kafka.topic"), Msg);
+
         logger.info("[                             Kafka After Logging END                                ]");
 
-        return 0;
     }
-
-
 }
